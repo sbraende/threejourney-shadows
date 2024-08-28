@@ -1,0 +1,1 @@
+Project is following tutorial from https://threejs-journey.com/
