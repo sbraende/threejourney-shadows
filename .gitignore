@@ -5,3 +5,4 @@ node_modules/
 /.vite/
 .vscode
 .DS_Store
+blender/
