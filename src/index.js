@@ -40,8 +40,10 @@ const scene = new THREE.Scene()
 const textureLoader = new THREE.TextureLoader()
 const bakeShadow = textureLoader.load("/textures/bake.png")
 bakeShadow.colorSpace = THREE.SRGBColorSpace
-console.log(bakeShadow)
 
+const simpleShadow = textureLoader.load("/textures/simpleShadow.jpg")
+simpleShadow.colorSpace = THREE.SRGBColorSpace
+console.log(simpleShadow)
 
 /*
 * Material
@@ -54,21 +56,29 @@ baseMaterial.roughness = 0.4
 const bakedMaterial = new THREE.MeshBasicMaterial( { map: bakeShadow})
 bakedMaterial.roughness = 0.4
 
-
-const bakedMaterial = new THREE.MeshBasicMaterial( { map: bakeShadow})
-bakedMaterial.roughness = 0.4
-
-
 /*
 * Objects
 */
 const planeMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(10, 10),
-    bakedMaterial
+    baseMaterial
 )
 planeMesh.position.set(0, -0.8, 0)
 planeMesh.rotateX(- Math.PI*0.5)
 planeMesh.receiveShadow = true
+
+// Shadow plane
+const sphereShadow = new THREE.Mesh(
+    new THREE.PlaneGeometry(4, 4),
+    new THREE.MeshBasicMaterial( {
+        color: 0xff0000,
+        transparent: true,
+        alphaMap: simpleShadow
+    } )
+)
+sphereShadow.position.y = planeMesh.position.y + 0.02
+sphereShadow.rotation.x = - Math.PI * 0.5
+scene.add(sphereShadow)
 
 const boxMesh = new THREE.Mesh(
     new THREE.BoxGeometry(),
@@ -153,6 +163,7 @@ scene.add(pointLight)
 
 const pointLightHelper = new THREE.CameraHelper(pointLight.shadow.camera)
 scene.add(pointLightHelper)
+pointLightHelper.visible = false 
 
 
 /*
@@ -177,6 +188,8 @@ renderer.shadowMap.enabled = false // Option to disable shadowmap
 const controller = new OrbitControls(camera, canvasEl)
 controller.enableDamping = true
 
+const clock = new THREE.Clock()
+
 /*
 * Tick
 */
@@ -189,6 +202,15 @@ const tick = () => {
     boxMesh.rotation.y += animationSpeed
     torusMesh.rotation.x += animationSpeed
     torusMesh.rotation.y += animationSpeed
+
+    const elapsedTime = clock.getElapsedTime()
+    sphereMesh.position.x = Math.cos(elapsedTime) * 1.5
+    sphereMesh.position.z = Math.sin(elapsedTime) * 1.5
+    sphereMesh.position.y = Math.abs(Math.sin(elapsedTime * 3))
+
+    sphereShadow.position.x = sphereMesh.position.x
+    sphereShadow.position.z = sphereMesh.position.z
+    sphereShadow.material.opacity = (1 - sphereMesh.position.y) * 0.8
 
     // Render
     controller.update()
